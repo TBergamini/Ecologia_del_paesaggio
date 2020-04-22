@@ -25,3 +25,8 @@ plot(p224r63_2011c$map, col=clclass)
 
 p224r63_2011c <- unsuperClass(p224r63_2011, nClasses=2)
 plot(p224r63_2011c$map)
+
+
+# 22/4/21
+
+
