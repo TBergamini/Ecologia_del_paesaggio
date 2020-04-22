@@ -77,3 +77,70 @@ cl <- colorRampPalette(c('yellow','green','blue'))(100)
 plot(d,col=cl)
 plot(coastlines, col="black", add=T)
 points(covids,pch=19,cex=0.5)
+
+
+#21/4/20
+
+library(spatstat)
+library(ggplot2)
+library(sp)
+library(rgdal) 
+
+coastlines <- readOGR("ne_10m_coastline.shp")
+plot(d)
+points(covids,col="yellow")
+plot(coastlines, col="yellow", add=T)
+
+cl5 <- colorRampPalette(c('cyan', 'purple', 'red')) (200)
+plot(d, col=cl5, main="density")
+points(covids)
+coastlines <- readOGR("ne_10m_coastline.shp")
+plot(coastlines, add=T)
+
+# interpolation
+head(covid)
+marks(covids) <- covid$cases
+s <- Smooth(covids)
+plot(s)
+
+#esercizio: inseirire a s anche i punti e i bordi delle coste
+cl5 <- colorRampPalette(c('cyan', 'purple', 'red')) (200) 
+plot(s, col=cl5, main="estimate of cases")
+points(covids)
+coastlines <- readOGR("ne_10m_coastline.shp")
+plot(coastlines, add=T)
+
+#### mappa finale
+par(mfrow=c(2,1))
+#densità
+cl5 <- colorRampPalette(c('cyan', 'purple', 'red')) (200)
+plot(d, col=cl5, main="density")
+points(covids)
+coastlines <- readOGR("ne_10m_coastline.shp")
+plot(coastlines, add=T)
+
+#interpolazione
+cl5 <- colorRampPalette(c('cyan', 'purple', 'red')) (200)
+plot(s, col=cl5, main="estimate of cases")
+points(covids)
+coastlines <- readOGR("ne_10m_coastline.shp")
+plot(coastlines, add=T)
+
+
+
+#San marino
+library(spatstat)
+setwd("C:/lab")
+load("Tesi.RData")
+ls()
+head(Tesi)
+
+attach(Tesi)
+
+summary(Tesi)
+#point pattern: x,y,c(xmin,xmax),C(ymin,ymax)
+Tesippp <- ppp(Longitude, Latitude, c(12.41, 12.47), c(43.90, 43.95))
+
+dT <- density(Tesippp)
+plot(dT)
+points(Tesippp, col="black")
