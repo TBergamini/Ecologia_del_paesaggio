@@ -144,3 +144,47 @@ Tesippp <- ppp(Longitude, Latitude, c(12.41, 12.47), c(43.90, 43.95))
 dT <- density(Tesippp)
 plot(dT)
 points(Tesippp, col="black")
+
+# lezione del 28/04/20
+
+setwd("C:/lab/")
+load("sanmarino.RData")
+
+ls()
+
+# dT = density map; Tesi = tabella dei dati originali; Tesippp = point pattern di Tesi
+
+library(spatstat)
+plot(dT)
+points(Tesippp, col="green")
+head(Tesi)
+
+# interpolation
+# marks(Tesippp) <- Tesi[8] # numero della colonna con i casi
+marks(Tesippp) <- Tesi$Species_richness 
+interpol <- Smooth(Tesippp) #crea mappa raster a partire da valori discreti
+plot(interpol)
+points(Tesippp, col="black")
+
+library(rgdal)
+sanmarino <- readOGR("San_Marino.shp")
+plot(sanmarino)
+plot(interpol, add=T)
+points(Tesippp, col="black")
+plot(sanmarino, add=T) #riaggiungiamo sopra la mappa di sanmarino
+
+#esercizio: fare un plot multiframe di densità e interpolazione
+par(mfrow=c(2,1)) #creiamo un multiframe a 2 righe e 1 colonna
+plot(dT, main="Densità")
+points(Tesippp, col="black")
+plot(interpol, main="Stima della ricchezza di specie")
+points(Tesippp, col="black")
+View(Tesi) #per vedere la tabella dei dati relativi a Tesi
+
+#esercizio: cambiamo colonne e righe del multiframe
+par(mfrow=c(1,2))
+plot(dT, main="Density of points")
+points(Tesippp,col="black")
+plot(interpol, main="Estimate of species richness")
+points(Tesippp,col="black")
+ 
