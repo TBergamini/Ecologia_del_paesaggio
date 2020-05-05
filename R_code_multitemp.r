@@ -69,3 +69,33 @@ output <- data.frame(cover,before,after)
 View(output)
 
 library(ggplot2)
+
+setwd("C:/lab/")
+load("defor.RData")
+ls() #vediamo la lista dei file
+
+library(raster)
+
+par(mfrow=c(1,2))
+cl <- colorRampPalette(c('black','green'))(100) # 
+plot(d1c$map, col=cl)
+plot(d2c$map, col=cl)
+
+library(ggplot2)
+# istogramma sulla % di copertura del suolo
+ggplot(output, aes(x=cover, y=before, color=cover)) +
+geom_bar(stat="identity", fill="white")
+
+#esercizio: plot dell'istogramma della deforestazione dopo
+ggplot(output, aes(x=cover, y=after, color=cover)) +
+geom_bar(stat="identity", fill="white")
+
+install.packages("gridExtra")
+library(gridExtra) #oppure require(Extra)
+
+gr1<-ggplot(output, aes(x=cover, y=before, color=cover)) +
+geom_bar(stat="identity", fill="white")
+gr2<-ggplot(output, aes(x=cover, y=after, color=cover)) +
+geom_bar(stat="identity", fill="white")
+grid.arrange(gr1, gr2, nrow = 1) # this needs griExtra, mette entrambi i grafici in una finestra
+
