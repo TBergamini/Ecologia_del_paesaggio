@@ -47,3 +47,26 @@ plot(EN12, col=cl)
 plot(EN13, col=cl)
 
 
+
+####### lezione del 12/5
+
+library(raster)
+
+setwd("C:/lab/esa_no2")
+
+rlist <- list.files(pattern=".png")
+
+listafinale <- lapply(rlist, raster)
+
+EN <- stack(listafinale)
+
+difEN <- EN$EN_0013 - EN$EN_0001
+
+cld <- colorRampPalette(c('blue','white','red'))(100) # 
+plot(difEN, col=cld)
+
+cl <- colorRampPalette(c('red','orange','yellow'))(100) #
+plot(EN, col=cl)
+
+boxplot(EN, horizontal=T,outline=F,axes=T)
+
