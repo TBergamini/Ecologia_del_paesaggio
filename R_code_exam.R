@@ -725,8 +725,6 @@ plot(EN11, col=cl)
 plot(EN12, col=cl)
 plot(EN13, col=cl)
 
-
-
 ####### lezione del 12/5
 
 library(raster)
@@ -739,7 +737,7 @@ listafinale <- lapply(rlist, raster)
 
 EN <- stack(listafinale)
 
-difEN <- EN$EN_0013 - EN$EN_0001
+difEN <- EN$EN_0013 - EN$EN_0001 #differenza tra EN13 e EN01
 
 cld <- colorRampPalette(c('blue','white','red'))(100) # 
 plot(difEN, col=cld)
@@ -757,6 +755,7 @@ boxplot(EN, horizontal=T,outline=F,axes=T)
 
 setwd("C:/lab/")
 
+#installiamo/richiamiamo i pacchetti
 install.packages("ncdf4")
 library(ncdf4)
 library(raster)
@@ -769,27 +768,22 @@ plot(snowmay,col=cl)
 
 ##### importare i dati sulla neve
 
-setwd("~/lab/snow")
-# setwd("/Users/utente/lab/snow") #mac
-# setwd("C:/lab/snow") # windows
+setwd("C:/lab/snow") # windows
 
-# snow2000r <- raster("snow2000r.tif")
+snow2000r <- raster("snow2000r.tif")
 
-# lapply() example with NO2 data
-
+# esempio di utilizzo di lapply() con i dati di NO2
 # rlist=list.files(pattern=".png", full.names=T)
 
-##save raster into list
-##con lappy
+##salvataggio di raster in una lista con l'utilizzo di lapply
 # list_rast=lapply(rlist, raster)
 # EN <- stack(list_rast)
 # plot(EN)
 
-rlist <- list.files(pattern=".tif")
+rlist <- list.files(pattern=".tif") #creiamo una lista con le immagini sulla neve
 rlist 
 
-#save raster into list
-#con lappy
+#salvare i raster in una lista usando lapply
 list_rast <- lapply(rlist, raster)
 snow.multitemp <- stack(list_rast)
 plot(snow.multitemp,col=cl)
@@ -798,34 +792,93 @@ par(mfrow=c(1,2))
 plot(snow.multitemp$snow2000r, col=cl)
 plot(snow.multitemp$snow2020r, col=cl)
 
-par(mfrow=c(1,2))
+par(mfrow=c(1,2)) #confronto tra le immagini, 1 riga 2 colonne
 plot(snow.multitemp$snow2000r, col=cl, zlim=c(0,250))
 plot(snow.multitemp$snow2020r, col=cl, zlim=c(0,250))
 
-difsnow = snow.multitemp$snow2020r - snow.multitemp$snow2000r
-cldiff <- colorRampPalette(c('blue','white','red'))(100) 
+difsnow = snow.multitemp$snow2020r - snow.multitemp$snow2000r     #differenza copertura
+cldiff <- colorRampPalette(c('blue','white','red'))(100) #colorazione della visualizzazione della copertura
 plot(difsnow, col=cldiff)
 
 # prediction
-# go to IOL and downloand prediction.r into the folder snow
-# source("prediction.r")
+# scaricare prediction.r 
 # plot(predicted.snow.2025.norm, col=cl)
-# since the code needs time, you can ddownload predicted.snow.2025.norm.tif from iol in the Data
-
-predicted.snow.2025.norm <- raster("predicted.snow.2025.norm.tif")
+# se no scaricare la versione .tif
+predicted.snow.2025.norm <- raster("predicted.2025.norm.tif")
 plot(predicted.snow.2025.norm, col=cl)
 
+#################################################################
+#################################################################
+#################################################################
+
+### 10. R code patches
+
+# R_code_patches.r
+# install.packages("igraph")
+
+library(raster)
+library(igraph) # per le pacthes
+library(ggplot2) # per il plot finale
+
+setwd("C:/lab/") # settaggio della directory per windows
+
+d1c <- raster("d1c.tif")
+d2c <- raster("d2c.tif")
+
+par(mfrow=c(1,2))
+cl <- colorRampPalette(c('black','green'))(100) # impostiamo la colorazione
+plot(d1c,col=cl)
+plot(d2c,col=cl)
+
+# agricoltura: classe 1  foresta: classe 2
+d1c.for <- reclassify(d1c, cbind(1,NA))
+d2c.for <- reclassify(d2c, cbind(1,NA))
+
+par(mfrow=c(1,2))
+cl <- colorRampPalette(c('black','green'))(100) 
+plot(d1c,col=cl)
+plot(d1c.for, col=cl)
+
+par(mfrow=c(1,2))
+plot(d1c)
+plot(d2c)
+
+# creare patches
+library(igraph) # da usare per le patches
+d1c.for.patches <- clump(d1c.for)
+d2c.for.patches <- clump(d2c.for)
+
+# writeRaster(d1c.for.patches, "d1c.for.patches.tif")
+# writeRaster(d2c.for.patches, "d2c.for.patches.tif")
+# d1c.for.patches <- raster("d1c.for.patches.tif")
+# d2c.for.pacthes <- raster("d2c.for.patches.tif")
+
+# Esercizio: plottare entrambe le mappe una accanto all'altra
+clp <- colorRampPalette(c('dark blue','blue','green','orange','yellow','red'))(100) # 
+par(mfrow=c(1,2))
+plot(d1c.for.patches, col=clp)
+plot(d2c.for.patches, col=clp)
+
+# max patches d1 = 301
+# max patches d2 = 1212
+
+# plot dei risultati:
+time <- c("Period 1","Period 2")
+npatches <- c(301,1212)
+
+output <- data.frame(time,npatches)
+attach(output)
+
+ggplot(output, aes(x=time, y=npatches)) + geom_bar(stat="identity", fill="white")
 
 
-
-
-
-
-
+#################################################################
+#################################################################
+#################################################################
 
 
 #### 11. R_code crop  exam 
- library(raster)
+library(raster)
 setwd("C:/lab/snow/")
 
 #esercizio: caricare tutte le immagini snow
@@ -833,10 +886,10 @@ setwd("C:/lab/snow/")
 rlist <- list.files(pattern="snow")
 rlist
 
-list_rast <- lapply(rlist, raster)
+list_rast <- lapply(rlist, raster) #salvare l'immagine in una lista (lapply)
 snow.multitemp <- stack(list_rast)
  
- clb <- colorRampPalette(c('dark blue','blue','light blue'))(100) # 
+clb <- colorRampPalette(c('dark blue','blue','light blue'))(100)  
 plot(snow.multitemp,col=clb)
 
 # vari modi per fare lo zoom
@@ -863,4 +916,71 @@ plot(tot.italy, col=clb)
 plot(tot.italy, col=clb, zlim=c(20,200)) # con variazione impostata da 20 a 200 per tutti uguale
 
 # boxplot
-boxplot(snow.multitemp.italy, horizontal=T,outline=F)
+boxplot(tot.italy, horizontal=T,outline=F)
+
+#################################################################
+#################################################################
+#################################################################
+
+### 12. Species Distribution Modelling
+#questa volta non impostiamo la directory
+# install.packages("sdm")
+# install.packages("rgdal")
+library(sdm)
+library(raster)
+library(rgdal)
+
+# Specie
+file <- system.file("external/species.shp", package="sdm") #carichiamo un file di sistema
+species <- shapefile(file) # carichiamo la parte grafica, e punti 
+species
+
+species$Occurrence   #per vedere i dati di occurence
+plot(species)
+
+plot(species[species$Occurrence == 1,],col='blue',pch=16)
+
+points(species[species$Occurrence == 0,],col='red',pch=16)
+
+# variabili ambientali
+
+path <- system.file("external", package="sdm") #importiamo il percorso per la cartella dei dati ambientali
+
+lst <- list.files(path=path,pattern='asc$',full.names = T) #
+lst
+
+preds <- stack(lst) #facciamo uno stack delle variabili (predittori)
+
+cl <- colorRampPalette(c('blue','orange','red','yellow')) (100)
+plot(preds, col=cl)
+
+plot(preds$elevation, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+
+plot(preds$temperature, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+
+plot(preds$precipitation, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+
+plot(preds$vegetation, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+
+# modelizzazione
+
+d <- sdmData(train=species, predictors=preds)
+d
+
+m1 <- sdm(Occurrence ~ elevation + precipitation + temperature + vegetation, data=d, methods='glm') 
+p1 <- predict(m1, newdata=preds)
+
+plot(p1, col=cl)
+points(species[species$Occurrence == 1,], pch=16)
+
+
+#################################################################
+#################################################################
+#################################################################
+
+# EXAM PROJECT
+
