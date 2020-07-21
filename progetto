@@ -118,13 +118,6 @@ freq(FAPAR2000)
 [3,]    NA 541162800
 fr2000 <- freq(FAPAR2000)  
  
-#Creo un plot multiframe con i grafici delle frequenze
-
-FAPAR <- c(2020,2010,2000)
-pixels <- c(40144246,33645168,23775822)
-FAPAR1.multitemp <- data.frame(FAPAR, pixels)
-ggplot(FAPAR1.multitemp, aes(x=FAPAR,y=pixels)) + geom_bar(stat="identity",fill="dark green") 
-
 # calcolare proporzione
 
 totd1 <- 144993782 + 40144246
@@ -184,6 +177,11 @@ freq(SA2000)
 [3,]    NA 65408677
 FRSA00 <- freq(SA2000)  
 
+FAPARSUD <- c(2020,2010,2000)
+pixelssud <- c(14009212,13442848,8713505)
+FAPARSUD.multitemp <- data.frame(FAPARSUD, pixelssud)
+ggplot(FAPARSUD.multitemp, aes(x=FAPARSUD,y=pixelssud)) + geom_bar(stat="identity",fill="dark green") 
+
 # calcolare proporzione
 tot1 <- 5259647 + 14009212
 prc1 <- FRSA20 * 100 / tot1
@@ -193,8 +191,8 @@ prc3 <- FRSA00 * 100 / tot3
 # Imposto la tabella delle % 
 
 copertura <- c("Aree Aperte", "Foresta")
-Anno_2020 <- c(72.7039,27.2961)
-Anno_2000 <- c(63.98275,36.01725)
+Anno_2020 <- c(27.2961,72.7039)
+Anno_2000 <- c(36.01725,63.98275)
 fine <- data.frame(copertura,Anno_2000,Anno_2020)
 View(fine)
 
