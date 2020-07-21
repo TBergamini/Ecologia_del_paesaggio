@@ -146,7 +146,8 @@ gr1<-ggplot(output, aes(x=cover, y=Anno2000, color=cover)) + geom_bar(stat="iden
 gr2<-ggplot(output, aes(x=cover, y=Anno2020, color=cover)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
 grid.arrange(gr1, gr2, nrow = 1)
  
-# Usiamo la funzione crop per eseguire un taglio dell'immagine sul Sud America impostando l'estensione
+# Usiamo la funzione crop per eseguire un taglio 
+# dell'immagine sul Sud America impostando l'estensione
 
 extension <- c(-110, -20, -70, 10)                  
 SA2020 <- crop(FAPAR2020, extension)
