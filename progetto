@@ -1,37 +1,63 @@
-# ANALISI MULTITEMPORALE DELLA COPERTURA VEGETALE MEDIANTE FAPAR NEL PERIODO 2000-2020, CON SUCCESSIVO FOCUS SULLA SITUAZIONE IN 
-# AUSTRALIA.
-                     
-# RICHIAMARE LIBRERIA raster.
-                     
+# Analisi multitemporale della copertura vegetale mediante indicatore FAPAR, nel periodo che va dal 2000 al 2020. Con un focus sul Sud America.
+# Sito Copernicus per i dati: https://land.copernicus.vgt.vito.be/PDF/portal/Application.html#Home
+
+                   
+#  Installo e richiamo le librerie necessarie    
+
+install.packages("sp")
+library(sp)
+       
+install.packages("raster")       
 library(raster)
-library(rgdal)                     
+       
+install.packages("ncdf4")
 library(ncdf4)
-library(spatstat)   
+       
+install.packages("rgdal")
+library(rgdal)
+
+install.packages("ggplot2")
 library(ggplot2)
 
-# CREAZIONE DI UNA SOTTOCARTELLA DENOMINATA fapar ALL'INTERNO DELLA CARTELLA lab.
+install.packages("spatstat")
+library(spatstat)
 
-# SETTAGGIO DELLA WORKING DIRECTORY IMPOSTATA SULLA NUOVA SOTTOCARTELLA.
+install.packages("gridExtra")
+library(gridExtra)
+
+# creo una sottocartella dentro lab
+# Si fa un settaggio della working directory
                      
 setwd("C:/lab/esame")                     
 
-# IMPORTO I FILE .nc DEGLI ANNI 2020-2010-2000
+# Importo e nomino i file con formato .nc degli anni 2000 - 2010 - 2020 attraverso la funzione raster
                      
 FAPAR2020 <- raster("c_gls_FAPAR-RT6_202003100000_GLOBE_PROBAV_V2.0.1.nc")      
 
 FAPAR2010 <- raster("c_gls_FAPAR_201003100000_GLOBE_VGT_V2.0.1.nc")
                     
 FAPAR2000 <- raster("c_gls_FAPAR_200001240000_GLOBE_VGT_V1.4.1.nc")
+
+# Oppure attraverso la funzione list.files imposto una lista con i file .nc                                                    
+                                                        
+list <- list.files(pattern=".nc")                                                
+list
+
+# Con la funzione lapply carico tutti i file .nc
+                                                        
+list_rast <- lapply(list, raster)
+                                                        
+# Con la funzione stack uniamo i dati in un oggetto unico 
+
+FAPAR.multitemp <- stack(list_rast)         
                      
-# IMPOSTARE I COLORI DELLA PALETTE.
+# Si definiscono i colori della Palette
                      
 cl <- colorRampPalette(c('yellow','green','darkgreen'))(100)
 
-# FACCIO UN PAR DELLE TRE IMMAGINI
+# Si esegue un plottaggio delle immagini attraverso un par
 
-par(mfrow=c(1,3))
-                                                        
-# PLOTTO FAPAR 2020-2010-2000
+par(mfrow=c(3,1))                                                       
                                                         
 plot(FAPAR2000, main="FAPAR ANNO 2000", col=cl)
                                                         
@@ -39,56 +65,38 @@ plot(FAPAR2010, main="FAPAR ANNO 2010", col=cl)
   
 plot(FAPAR2020, main="FAPAR ANNO 2020", col=cl)              
                 
-# IMPOSTARE L'ESTENSIONE .nc ED ASSOCIARE IL TERMINE lista ALLA FUNZIONE list.files.                                                       
-                                                        
-list <- list.files(pattern=".nc") 
-                                                        
-# ASSICURARSI CHE EFFETTIVAMENTE R LEGGA I FILE .nc DESIDERATI.
-                                                        
-list
-
-# CARICARE TUTTI I FILE CON ESTENSIONE .nc CON LA FUNZIONE lapply.
-                                                        
-list_rast <- lapply(list, raster)
-                                                        
-# stack PERMETTE DI UNIRE I DATI E CREARE UN OGGETTO UNICO.
-
-FAPAR.multitemp <- stack(list_rast)
-                  
-# PLOTTARE multitemp.fapar.
-                     
-plot(FAPAR.multitemp, col=cl)                     
-                                                      
-# DIFFERENZA TRA FAPAR2020 e FAPAR2000.
+# Si esegue una differenza tra FAPAR2020 E FAPAR2000.
                                                         
 diffapar= FAPAR2020 - FAPAR2000
      
-# CAMBIARE COLORE.
+# Imposto un altra colorazione.
                                                         
-cl <- colorRampPalette(c('red','grey','green'))(100)                                                        
+cl <- colorRampPalette(c('red','yellow','green'))(100)                                                        
                                                       
-# PLOTTARE LA DIFFERENZA TRA 2020 E 2000 CON ANCHE LA COASTLINE
+# Si fa un plot della differenza aggiungendo la coastline
 
 plot(diffapar, main="2020 - 2000", col=cl)
-
 setwd("C:/lab/esame")
 coastlines <- readOGR ("ne_10m_coastline.shp")
 
-#controllo che coastlines ed difndvi abbiano la stessa estensione
+# Si controlla che la differenza e la coastline abbiano la stessa estensione
+
 coastlines
 diffapar
 
 #Cambio estensione a diffapar
+
 extension <- c(-180, 180, -85.22194, 83.6341)
 diffapar <- crop(diffapar, extension)
 
-#Faccio grafico di fapar e coastline insieme
+#Faccio un plot di fapar e coastline insieme
 
 par(mfrow=c(1,1))
 plot(diffapar,col= cl, zlim=c(0,1))
 plot(coastlines,lwd=0.2,add=T)
  
-#Faccio le frequenze per tutti quanti
+#Faccio le frequenze per il 2020 - 2010 - 2000
+
 freq(FAPAR2020)
           value     count
 [1,]     0 144993782
@@ -110,40 +118,49 @@ freq(FAPAR2000)
 [3,]    NA 541162800
 fr2000 <- freq(FAPAR2000)  
  
-#Creo un plot multiframe
+#Creo un plot multiframe con i grafici delle frequenze
+
 FAPAR <- c(2020,2010,2000)
-pixels <- c(144993782,156696516,67278978)
+pixels <- c(40144246,33645168,23775822)
 FAPAR1.multitemp <- data.frame(FAPAR, pixels)
 ggplot(FAPAR1.multitemp, aes(x=FAPAR,y=pixels)) + geom_bar(stat="identity",fill="dark green") 
 
 # calcolare proporzione
+
 totd1 <- 144993782 + 40144246
 percent1 <- fr2020 * 100 / totd1
 totd3 <- 67278978 + 23775822
 percent3 <- fr2000 * 100 / totd3
 
+# Si imposta la tabella delle % di foreste e aree aperte
+
 cover <- c("Aree Aperte", "Foresta")
 Anno2020 <- c(78.31659,21.68341)
 Anno2000 <- c(73.88845,26.11155)
-
 output <- data.frame(cover,Anno2000,Anno2020)
 View(output)
+
+# Con ggplot eseguiamo il grafico delle % di copertura, e con grid.arrange uniamo i grafici in una finestra
 
 gr1<-ggplot(output, aes(x=cover, y=Anno2000, color=cover)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
 gr2<-ggplot(output, aes(x=cover, y=Anno2020, color=cover)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
 grid.arrange(gr1, gr2, nrow = 1)
  
-# Funione zoom PER INGRANDIRE L'AREA DELL'AUSTRALIA, SPECIFICATA ATTRAVERSO LE ESTENSIONI, E INSERENDO I VALORI DI min e max.
+# Usiamo la funzione crop per eseguire un taglio dell'immagine sul Sud America impostando l'estensione
 
-# SI EVIDENZIA PURTROPPO UNA GRANDE PERDITA DI VEGETAZIONE NELLA COSTA SUD-ORIENTALE.
 extension <- c(-110, -20, -70, 10)                  
 SA2020 <- crop(FAPAR2020, extension)
 SA2010 <- crop(FAPAR2010, extension)
 SA2000 <- crop(FAPAR2000, extension)    
-par(mfrow=c(1,3))
+
+# Facciamo un par con le immagini ottenute
+
+par(mfrow=c(3,1))
 plot(SA2020,main = "Anno 2020")
 plot(SA2010,main ="Anno 2010")
 plot(SA2000,main = "Anno 2000")
+
+# Faccio le frequenze anche per il Sud America
 
 freq(SA2020)
            value    count
@@ -172,12 +189,15 @@ prc1 <- FRSA20 * 100 / tot1
 tot3 <- 4905018 + 8713505
 prc3 <- FRSA00 * 100 / tot3
 
+# Imposto la tabella delle % 
+
 copertura <- c("Aree Aperte", "Foresta")
 Anno_2020 <- c(72.7039,27.2961)
 Anno_2000 <- c(63.98275,36.01725)
-
 fine <- data.frame(copertura,Anno_2000,Anno_2020)
 View(fine)
+
+# Con ggplot visualizziamo il grafico delle % e con grid.arrange visualizzo i due grafici in una finestra
 
 GR1<-ggplot(fine, aes(x=copertura, y=Anno_2000, color=copertura)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
 GR2<-ggplot(fine, aes(x=copertura, y=Anno_2020, color=copertura)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
