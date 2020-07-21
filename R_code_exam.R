@@ -984,3 +984,206 @@ points(species[species$Occurrence == 1,], pch=16)
 
 # EXAM PROJECT
 
+# Analisi multitemporale della copertura vegetale mediante indicatore FAPAR, nel periodo che va dal 2000 al 2020. Con un focus sul Sud America.
+# Sito Copernicus per i dati: https://land.copernicus.vgt.vito.be/PDF/portal/Application.html#Home
+
+                   
+#  Installo e richiamo le librerie necessarie    
+
+install.packages("sp")
+library(sp)
+       
+install.packages("raster")       
+library(raster)
+       
+install.packages("ncdf4")
+library(ncdf4)
+       
+install.packages("rgdal")
+library(rgdal)
+
+install.packages("ggplot2")
+library(ggplot2)
+
+install.packages("spatstat")
+library(spatstat)
+
+install.packages("gridExtra")
+library(gridExtra)
+
+# creo una sottocartella dentro lab
+# Si fa un settaggio della working directory
+                     
+setwd("C:/lab/esame")                     
+
+# Importo e nomino i file con formato .nc degli anni 2000 - 2010 - 2020 attraverso la funzione raster
+                     
+FAPAR2020 <- raster("c_gls_FAPAR-RT6_202003100000_GLOBE_PROBAV_V2.0.1.nc")      
+
+FAPAR2010 <- raster("c_gls_FAPAR_201003100000_GLOBE_VGT_V2.0.1.nc")
+                    
+FAPAR2000 <- raster("c_gls_FAPAR_200001240000_GLOBE_VGT_V1.4.1.nc")
+
+# Oppure attraverso la funzione list.files imposto una lista con i file .nc                                                    
+                                                        
+list <- list.files(pattern=".nc")                                                
+list
+
+# Con la funzione lapply carico tutti i file .nc
+                                                        
+list_rast <- lapply(list, raster)
+                                                        
+# Con la funzione stack uniamo i dati in un oggetto unico 
+
+FAPAR.multitemp <- stack(list_rast)         
+                     
+# Si definiscono i colori della Palette
+                     
+cl <- colorRampPalette(c('yellow','green','darkgreen'))(100)
+
+# Si esegue un plottaggio delle immagini attraverso un par
+
+par(mfrow=c(3,1))                                                       
+                                                        
+plot(FAPAR2000, main="FAPAR ANNO 2000", col=cl)
+                                                        
+plot(FAPAR2010, main="FAPAR ANNO 2010", col=cl)                                                       
+  
+plot(FAPAR2020, main="FAPAR ANNO 2020", col=cl)              
+                
+# Si esegue una differenza tra FAPAR2020 E FAPAR2000.
+                                                        
+diffapar= FAPAR2020 - FAPAR2000
+     
+# Imposto un altra colorazione.
+                                                        
+cl <- colorRampPalette(c('red','yellow','green'))(100)                                                        
+                                                      
+# Si fa un plot della differenza aggiungendo la coastline
+
+plot(diffapar, main="2020 - 2000", col=cl)
+setwd("C:/lab/esame")
+coastlines <- readOGR ("ne_10m_coastline.shp")
+
+# Si controlla che la differenza e la coastline abbiano la stessa estensione
+
+coastlines
+diffapar
+
+#Cambio estensione a diffapar
+
+extension <- c(-180, 180, -85.22194, 83.6341)
+diffapar <- crop(diffapar, extension)
+
+#Faccio un plot di fapar e coastline insieme
+
+par(mfrow=c(1,1))
+plot(diffapar,col= cl, zlim=c(0,1))
+plot(coastlines,lwd=0.2,add=T)
+ 
+#Faccio le frequenze per il 2020 - 2010 - 2000
+
+freq(FAPAR2020)
+          value     count
+[1,]     0 144993782
+[2,]     1  40144246
+[3,]    NA 447079572
+fr2020 <- freq(FAPAR2020)
+       
+freq(FAPAR2010)
+        value     count
+[1,]     0 156696516
+[2,]     1  33645168
+[3,]    NA 441875916
+fr2010 <- freq(FAPAR2010)
+       
+freq(FAPAR2000)
+     value     count
+[1,]     0  67278978
+[2,]     1  23775822
+[3,]    NA 541162800
+fr2000 <- freq(FAPAR2000)  
+ 
+# calcolare proporzione
+
+totd1 <- 144993782 + 40144246
+percent1 <- fr2020 * 100 / totd1
+totd3 <- 67278978 + 23775822
+percent3 <- fr2000 * 100 / totd3
+
+# Si imposta la tabella delle % di foreste e aree aperte
+
+cover <- c("Aree Aperte", "Foresta")
+Anno2020 <- c(78.31659,21.68341)
+Anno2000 <- c(73.88845,26.11155)
+output <- data.frame(cover,Anno2000,Anno2020)
+View(output)
+
+# Con ggplot eseguiamo il grafico delle % di copertura, e con grid.arrange uniamo i grafici in una finestra
+
+gr1<-ggplot(output, aes(x=cover, y=Anno2000, color=cover)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
+gr2<-ggplot(output, aes(x=cover, y=Anno2020, color=cover)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
+grid.arrange(gr1, gr2, nrow = 1)
+ 
+# Usiamo la funzione crop per eseguire un taglio 
+# dell'immagine sul Sud America impostando l'estensione
+
+extension <- c(-110, -20, -70, 10)                  
+SA2020 <- crop(FAPAR2020, extension)
+SA2010 <- crop(FAPAR2010, extension)
+SA2000 <- crop(FAPAR2000, extension)    
+
+# Facciamo un par con le immagini ottenute
+
+par(mfrow=c(3,1))
+plot(SA2020,main = "Anno 2020")
+plot(SA2010,main ="Anno 2010")
+plot(SA2000,main = "Anno 2000")
+
+# Faccio le frequenze anche per il Sud America
+
+freq(SA2020)
+           value    count
+[1,]     0  5259647
+[2,]     1 14009212
+[3,]    NA 59758341
+FRSA20 <- freq(SA2020)
+       
+freq(SA2010)
+        value    count
+[1,]     0  5825737
+[2,]     1 13442848
+[3,]    NA 59758615
+FRSA10 <- freq(SA2010)
+       
+freq(SA2000)
+     value    count
+[1,]     0  4905018
+[2,]     1  8713505
+[3,]    NA 65408677
+FRSA00 <- freq(SA2000)  
+
+FAPARSUD <- c(2020,2010,2000)
+pixelssud <- c(14009212,13442848,8713505)
+FAPARSUD.multitemp <- data.frame(FAPARSUD, pixelssud)
+ggplot(FAPARSUD.multitemp, aes(x=FAPARSUD,y=pixelssud)) + geom_bar(stat="identity",fill="dark green") 
+
+# calcolare proporzione
+tot1 <- 5259647 + 14009212
+prc1 <- FRSA20 * 100 / tot1
+tot3 <- 4905018 + 8713505
+prc3 <- FRSA00 * 100 / tot3
+
+# Imposto la tabella delle % 
+
+copertura <- c("Aree Aperte", "Foresta")
+Anno_2020 <- c(27.2961,72.7039)
+Anno_2000 <- c(36.01725,63.98275)
+fine <- data.frame(copertura,Anno_2000,Anno_2020)
+View(fine)
+
+# Con ggplot visualizziamo il grafico delle % e con grid.arrange visualizzo i due grafici in una finestra
+
+GR1<-ggplot(fine, aes(x=copertura, y=Anno_2000, color=copertura)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
+GR2<-ggplot(fine, aes(x=copertura, y=Anno_2020, color=copertura)) + geom_bar(stat="identity", fill="white") + coord_cartesian(ylim = c(0, 100))
+grid.arrange(GR1, GR2, nrow = 1)
